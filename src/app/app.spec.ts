@@ -14,6 +14,12 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
+  it(`should have the 'first-ng-app' title`, () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    expect(app.title).toEqual('first-ng-app');
+  });
+
   it('should render title', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
