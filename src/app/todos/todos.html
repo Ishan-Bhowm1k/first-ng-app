@@ -1,20 +1,51 @@
-<h3>Todos List</h3>
-
-@if (!todoItems().length) {
-<p>Loading...</p>
+<div class ="todos-page">
+  <div class="todos-card">
+<h2>My To-do List</h2>
+@if (!showAddInput()) {
+  <button (click)="addNewTodo()" class="add-btn">Add new task</button>
+} @else {
+  <div class="add-todo-container">
+    <input
+      type="text"
+      [(ngModel)]="newTodoText"
+      placeholder="Add a new task"
+      (keyup.enter)="saveNewTodo()"
+      (keyup.escape)="cancelAddTodo()"
+      class="new-todo-input"
+      autofocus
+    />
+    <button (click)="saveNewTodo()" class="save-btn">✓</button>
+    <button (click)="cancelAddTodo()" class="cancel-btn">✕</button>
+  </div>
 }
 
-<form>
-  <label>Filter Todos</label>
-  <input
-    name="searchTerm"
-    [(ngModel)]="searchTerm"
-    placeholder="Search todos..."
-  />
-</form>
+<div class="todo-list">
+    @for (todoItem of todoItems(); track todoItem.id) {
+        <div class="todo-item" [class.completed]="todoItem.completed">
+            <input type="checkbox" [checked]="todoItem.completed" (change)="toggleTodo(todoItem.id)" />
+            
+            @if (editingId() === todoItem.id) {
+              <input
+                type="text"
+                [(ngModel)]="editingText"
+                class="edit-input"
+                (keyup.enter)="saveEdit(todoItem.id)"
+                (keyup.escape)="cancelEdit()"
+                autofocus
+              />
+            } @else {
+              <span class="todo-text">{{todoItem.title}}</span>
+            }
 
-<ul class="todos">
-  @for (todo of todoItems() | filterTodos : searchTerm(); track todo.id) {
-  <app-todo-item (todoToggled)="updateTodoItem($event)" [todo]="todo" />
-  }
-</ul>
+            @if (editingId() === todoItem.id) {
+              <button (click)="saveEdit(todoItem.id)" class="save-btn">Save</button>
+              <button (click)="cancelEdit()" class="cancel-btn">Cancel</button>
+            } @else {
+              <button (click)="startEdit(todoItem)" class="edit-btn">Edit</button>
+              <button (click)="deleteTodo(todoItem.id)">Delete</button>
+            }
+        </div>
+    }
+</div>
+</div>
+</div>
