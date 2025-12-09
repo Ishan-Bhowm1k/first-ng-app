@@ -14,4 +14,10 @@ export const routes: Routes = [
       return import('./todos/todos').then((m) => m.Todos);
     },
   },
+  {
+    path: 'pokemon',
+    loadComponent: () => {
+      return import('./pokemon/pokemon-list').then((m) => m.PokemonList);
+    },
+  },
 ];
