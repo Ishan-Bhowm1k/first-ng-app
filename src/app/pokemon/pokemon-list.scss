@@ -53,7 +53,7 @@
 
   &:focus {
     outline: none;
-    border-color: #ffcb05; // Pokémon yellow
+    
     box-shadow: 0 0 10px rgba(255, 203, 5, 0.5);
   }
 }
@@ -68,15 +68,14 @@
     margin: 4px;
     padding: 8px 12px;
     cursor: pointer;
-    border-radius: 6px;
-    border: 1px solid #3561ad;
-    background-color: #fff2c12b;
+    
+    
     font-weight: bold;
   }
 
   button.active {
-    background-color: #3561ad;
-    color: rgb(255, 255, 54);
+    
+    
   }
 
   button:disabled {
@@ -85,12 +84,12 @@
   }
 
   button:hover:not(:disabled):not(.active) {
-    background-color: #3561ad33;
+    
   }
 
   .ellipsis {
     margin: 0 6px;
     font-weight: bold;
-    color: #3561ad;
+    
   }
 }
