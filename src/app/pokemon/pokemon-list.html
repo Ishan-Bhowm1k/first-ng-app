@@ -1,0 +1,36 @@
+<input 
+  type="text" 
+  placeholder="Search Pokémon..." 
+  (input)="search($event.target.value)" 
+  class="search-box"
+/>
+
+<div class="pokemon-grid">
+  @for (pokemon of pokemons; track pokemon.name) {
+
+    <div class="box" [routerLink]="['/details', pokemon.name]">
+      <img [src]="pokemon.sprites?.other?.home?.front_default" alt="Pokemon">
+      <p class="title">{{ pokemon.name }}</p>
+    </div>
+  }
+
+  @empty {
+    <h2>No Pokemon Found</h2>
+  }
+</div>
+
+<div class="custom-pagination">
+  <button (click)="changePage(page-1)" [disabled]="page===1">Prev</button>
+
+  @for (p of getVisiblePages(); track p) {
+    <button 
+      [class.active]="p === page"
+      [disabled]="p === '...'"
+      (click)="onPageClick(p)">
+      {{p}}
+    </button>
+  }
+
+  <button (click)="changePage(page+1)" [disabled]="page===totalPages">Next</button>
+</div>
+

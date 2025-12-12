@@ -1,0 +1,56 @@
+@if (pokemonDetails) {
+ <div class="header-row">
+  <button class="back-btn" routerLink="/"><</button>
+</div>
+  <div class="outer-box">
+      <h1>{{ pokemonDetails.name }}</h1>
+
+    <div class="top-row">
+    <div class="container">
+
+      <!-- LEFT: HERO IMAGE -->
+      <div class="hero">
+        <img [src]="heroImage" alt="pokemon">
+      </div>
+
+      <!-- MIDDLE: TINY IMAGES -->
+      <div class="tinyimages">
+        <img 
+          [src]="pokemonDetails.sprites.other.dream_world.front_default"
+          (click)="heroImage = pokemonDetails.sprites.other.dream_world.front_default"
+          alt="dream_world_Art">
+
+        <img 
+          [src]="pokemonDetails.sprites.other['official-artwork'].front_default"
+          (click)="heroImage = pokemonDetails.sprites.other['official-artwork'].front_default"
+          alt="official_art">
+
+        <img 
+          [src]="pokemonDetails.sprites.other.home.front_shiny"
+          (click)="heroImage = pokemonDetails.sprites.other.home.front_shiny"
+          alt="Front_shiny">
+      </div>
+      <h2 class="type">Type: {{ pokemonDetails.types[0].type.name }}</h2>
+
+      <!-- RIGHT: DETAILS -->
+      <div class="details">
+
+        <div class="info-box"><b>Height:</b> {{ pokemonDetails.height }}</div>
+        <div class="info-box"><b>Weight:</b> {{ pokemonDetails.weight }}</div>
+        <div class="info-box"><b>Attack:</b> {{ pokemonDetails.stats[1].base_stat }}</div>
+        <div class="info-box info-box--moves">
+          <b>Moves:</b>
+          <ng-container *ngFor="let m of pokemonDetails.moves; let i = index">
+            <span *ngIf="i < 4">
+              {{ m.move.name | titlecase }}<span *ngIf="i < 3">, </span>
+            </span>
+          </ng-container>
+        </div>
+
+      </div>
+
+    </div>
+    </div>
+
+  </div>
+}
