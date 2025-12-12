@@ -11,7 +11,6 @@ export class Data {
 
   constructor(private http: HttpClient) {}
 
-
   getPokemons(limit: number, offset: number): Observable<any> {
     return this.http.get(`${this.baseURL}?limit=${limit}&offset=${offset}`);
   }

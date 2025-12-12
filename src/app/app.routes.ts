@@ -14,4 +14,10 @@ export const routes: Routes = [
       import('./pdp/pdp').then(c => c.Details),
     data: { prerender: false } 
   },
+  {
+    path: 'pokemon',
+    loadComponent: () => {
+      return import('./pokemon/pokemon-list').then((m) => m.PokemonList);
+    },
+  },
 ];
