@@ -1,48 +1,62 @@
-.pokemon-grid{
+.pokemon-grid {
   display: grid;
-  grid-gap:16px ;
+  gap: 16px;
   padding: 20px;
-  grid-template-columns: repeat(auto-fit,minmax(23%, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 
-  .box{
-    width: 300px;
+  .box {
+    width: 100%;
     height: 300px;
-    box-shadow: 1px 2px 5px rgb(0, 0,0,0.3);
+    box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.3);
     border-radius: 5%;
     display: grid;
     text-align: center;
-    
-    img{
+
+    img {
       width: 65%;
       display: block;
       margin: 0 auto;
     }
-    .title{
+
+    .title {
       font-size: 2rem;
       text-transform: capitalize;
     }
-    .details{
+
+    .details {
       display: flex;
       justify-content: space-around;
-      p{
+
+      p {
         white-space: nowrap;
       }
     }
   }
 
-  .box:nth-child(4n+1) {
+  .box:nth-child(4n + 1) {
     background-color: rgb(255, 229, 241);
   }
-  .box:nth-child(4n+2) {
+
+  .box:nth-child(4n + 2) {
     background-color: rgb(229, 245, 255);
   }
-  .box:nth-child(4n+3) {
+
+  .box:nth-child(4n + 3) {
     background-color: rgb(255, 245, 229);
   }
+
   .box:nth-child(4n) {
-    background-color: rgb(223, 247, 230); /* soft green */
+    background-color: rgb(223, 247, 230);
   }
 }
+
+/* Mobile: force one card per row */
+@media (max-width: 600px) {
+  .pokemon-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .search-box {
   width: 100%;
   max-width: 300px;
@@ -53,10 +67,10 @@
 
   &:focus {
     outline: none;
-    
     box-shadow: 0 0 10px rgba(255, 203, 5, 0.5);
   }
 }
+
 .custom-pagination {
   display: flex;
   justify-content: center;
@@ -68,14 +82,7 @@
     margin: 4px;
     padding: 8px 12px;
     cursor: pointer;
-    
-    
     font-weight: bold;
-  }
-
-  button.active {
-    
-    
   }
 
   button:disabled {
@@ -83,13 +90,8 @@
     opacity: 0.5;
   }
 
-  button:hover:not(:disabled):not(.active) {
-    
-  }
-
   .ellipsis {
     margin: 0 6px;
     font-weight: bold;
-    
   }
 }

@@ -109,6 +109,12 @@ h1 {
   flex-direction: row;
   gap: 0.75rem;
   margin-top: 0.5rem;
+  
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: center;  
+
+  }
 }
 
 /* Pokémon name / type header inside details */
@@ -139,7 +145,9 @@ h1 {
 
 .info-box--moves {
   max-width: fit-content;          // limit how far it can grow
-  white-space: nowrap;   // show "…" when too long
+  white-space: nowrap;
+  width: 100%; 
+  white-space: normal;  // show "…" when too long
 }
 
 /* Blue-ish labels */

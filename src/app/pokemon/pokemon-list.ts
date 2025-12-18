@@ -1,7 +1,30 @@
-import { Component, OnInit } from '@angular/core';
-import { Data } from '../services/data';
+import { Component, OnDestroy } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject, takeUntil } from 'rxjs';
+import { Data } from '../services/data';
+
+interface NamedApiResource {
+  name: string;
+  url: string;
+}
+
+interface PokemonListResponse {
+  count: number;
+  results: NamedApiResource[];
+}
+
+interface PokemonSummary {
+  name: string;
+  id: number;
+  sprites?: {
+    front_default?: string;
+    other?: {
+      home?: {
+        front_default?: string;
+      };
+    };
+  };
+}
 
 @Component({
   selector: 'app-pokemon-list',
@@ -10,38 +33,62 @@ import { forkJoin } from 'rxjs';
   templateUrl: './pokemon-list.html',
   styleUrls: ['./pokemon-list.scss'],
 })
-export class PokemonList implements OnInit {
+export class PokemonListComponent implements OnDestroy {
+  // All names from API
+  allPokemonNames: NamedApiResource[] = [];
 
-  allPokemonNames: any[] = [];   // ALL names
-  filteredNames: any[] = [];     // Names after search
-  pokemons: any[] = [];          // Full details (current page)
+  // Filtered by search
+  filteredNames: NamedApiResource[] = [];
+
+  // Full details for current page
+  pokemons: PokemonSummary[] = [];
+
+  // Pagination state
   page = 1;
   limit = 12;
-  totalPages = 0;                // Total pages for pagination
+  totalPages = 0;
 
-  constructor(private data: Data) {}
+  private readonly destroy$ = new Subject<void>();
 
-  ngOnInit() {
-    this.loadAllNames();
+  constructor(private readonly data: Data) {
+    this.initAllNames();
   }
 
-  // Load all Pokémon names once
-  loadAllNames() {
-    this.data.getAllPokemonNames().subscribe((res: any) => {
-      this.allPokemonNames = res.results;
-      this.filteredNames = [...this.allPokemonNames];
-      this.calculateTotalPages();
-      this.loadPageData();
-    });
+  /**
+   * Load all Pokémon names once and keep them in memory.
+   */
+  private initAllNames(): void {
+    this.data
+      .getAllPokemonNames()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: PokemonListResponse) => {
+          this.allPokemonNames = res.results;
+          this.filteredNames = [...this.allPokemonNames];
+          this.updatePagination();
+        },
+        error: err => {
+          console.error('Failed to load Pokémon names', err);
+        },
+      });
   }
 
-  // Calculate total pages
-  calculateTotalPages() {
+  private updatePagination(): void {
+    this.calculateTotalPages();
+    this.loadPageData();
+  }
+
+  /**
+   * Calculate how many pages exist based on filtered names and limit.
+   */
+  private calculateTotalPages(): void {
     this.totalPages = Math.ceil(this.filteredNames.length / this.limit);
   }
 
-  // Load Pokémon for the current page
-  loadPageData() {
+  /**
+   * Load Pokémon details for the current page using forkJoin.
+   */
+  private loadPageData(): void {
     const start = (this.page - 1) * this.limit;
     const end = start + this.limit;
     const pageSlice = this.filteredNames.slice(start, end);
@@ -51,80 +98,109 @@ export class PokemonList implements OnInit {
       return;
     }
 
-    const requests = pageSlice.map(p => this.data.getPokemonDetails(p.name));
-    forkJoin<any[]>(requests).subscribe(list => {
-      this.pokemons = list;
-    });
+    const requests = pageSlice.map(p =>
+      this.data.getPokemonDetails(p.name)
+    );
+
+    forkJoin<PokemonSummary[]>(requests)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: list => {
+          this.pokemons = list;
+        },
+        error: err => {
+          console.error('Failed to load Pokémon details', err);
+          this.pokemons = [];
+        },
+      });
   }
 
-  // Change page
-  changePage(newPage: number) {
-    if (newPage < 1 || newPage > this.totalPages) return; // prevent overflow
+  /**
+   * Change current page if within valid bounds.
+   */
+  changePage(newPage: number): void {
+    if (newPage < 1 || newPage > this.totalPages || newPage === this.page) {
+      return;
+    }
     this.page = newPage;
     this.loadPageData();
   }
 
-  
-  onPageClick(p: number | string) {
+  onPageClick(p: number | string): void {
     if (typeof p === 'number') {
       this.changePage(p);
     }
   }
 
-  // Search all Pokémon
-  search(value: string) {
-    const term = value.toLowerCase();
-    this.filteredNames = this.allPokemonNames.filter(p =>
-      p.name.toLowerCase().includes(term)
-    );
-    this.page = 1; // reset to first page
-    this.calculateTotalPages();
-    this.loadPageData();
+  /**
+   * Search across all Pokémon names, reset to first page, and update.
+   */
+  search(value: string): void {
+    const term = value.trim().toLowerCase();
+
+    if (!term) {
+      this.filteredNames = [...this.allPokemonNames];
+    } else {
+      this.filteredNames = this.allPokemonNames.filter(p =>
+        p.name.toLowerCase().includes(term)
+      );
+    }
+
+    this.page = 1;
+    this.updatePagination();
   }
 
-  // Generate an array for page buttons (all pages)
+  /**
+   * Generate a simple array of page numbers (1..totalPages).
+   * If you still use this in template, it's available.
+   */
   getPagesArray(): number[] {
-    return Array(this.totalPages).fill(0).map((x,i) => i+1);
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
-  // Generate an array of page numbers with ellipsis
+  /**
+   * Generate visible page numbers with ellipsis for compact pagination.
+   */
   getVisiblePages(): (number | string)[] {
-    const total = this.totalPages;
-    const current = this.page;
-    const maxVisible = 5; // max page buttons before ellipsis
+  const total = this.totalPages;
+  const current = this.page;
+  const delta = 1; // how many pages around current
 
-    if (total <= maxVisible) {
-      return Array.from({length: total}, (_, i) => i + 1);
+  if (total <= 5) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const range: number[] = [];
+  const left = Math.max(2, current - delta);
+  const right = Math.min(total - 1, current + delta);
+
+  range.push(1);
+  for (let i = left; i <= right; i++) {
+    range.push(i);
+  }
+  range.push(total);
+
+  const pages: (number | string)[] = [];
+  let prev: number | undefined;
+
+  for (const page of range) {
+    if (prev !== undefined) {
+      if (page - prev === 2) {
+        pages.push(prev + 1);
+      } else if (page - prev > 2) {
+        pages.push('...');
+      }
     }
+    pages.push(page);
+    prev = page;
+  }
 
-    const pages: (number | string)[] = [];
-    pages.push(1); // first page
+  return pages;
+}
 
-    let start = Math.max(2, current - 1);
-    let end = Math.min(total - 1, current + 1);
 
-    if (current > total - 3) {
-      start = total - 3;
-      end = total - 1;
-    } else if (current < 3) {
-      start = 2;
-      end = 4;
-    }
-
-    if (start > 2) {
-      pages.push('...');
-    }
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-
-    if (end < total - 1) {
-      pages.push('...');
-    }
-
-    pages.push(total); // last page
-
-    return pages;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TitleCasePipe, CommonModule } from '@angular/common';
+import { Subject, switchMap, takeUntil } from 'rxjs';
 import { Data } from '../services/data';
 
 interface PokemonMoveEntry {
@@ -9,8 +10,10 @@ interface PokemonMoveEntry {
 }
 
 interface PokemonDetails {
+  name: string;
   height: number;
   weight: number;
+  types: { type: { name: string } }[];
   stats: { base_stat: number }[];
   moves: PokemonMoveEntry[];
   sprites?: any;
@@ -21,24 +24,51 @@ interface PokemonDetails {
   standalone: true,
   imports: [RouterLink, CommonModule, TitleCasePipe],
   templateUrl: './pdp.html',
-  styleUrls: ['./pdp.scss'], 
+  styleUrls: ['./pdp.scss'],
 })
-export class Details implements OnInit {
-  pokemonDetails: any = null;
-  heroImage: string = '';
+export class DetailsComponent implements OnDestroy {
+  pokemonDetails: PokemonDetails | null = null;
+  heroImage = '';
 
-  constructor(private route: ActivatedRoute, private dataService: Data,private router: Router) {}
+  private readonly destroy$ = new Subject<void>();
 
-  ngOnInit() {
-    const name = this.route.snapshot.paramMap.get('name');
-    if (!name) return;
-
-    this.dataService.getPokemonDetails(name).subscribe((response: any) => {
-      this.pokemonDetails = response;
-      this.heroImage =
-        this.pokemonDetails.sprites?.other?.home?.front_default ||
-        this.pokemonDetails.sprites?.front_default;
-    });
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly dataService: Data,
+    private readonly router: Router
+  ) {
+    this.initPokemonDetailsStream();
   }
 
+  private initPokemonDetailsStream(): void {
+    this.route.paramMap
+      .pipe(
+        switchMap(paramMap => {
+          const name = paramMap.get('name');
+          if (!name) {
+            this.router.navigate(['/']);
+            throw new Error('Pokemon name is required in route');
+          }
+          return this.dataService.getPokemonDetails(name);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (response: PokemonDetails) => {
+          this.pokemonDetails = response;
+          this.heroImage =
+            this.pokemonDetails?.sprites?.other?.home?.front_default ||
+            this.pokemonDetails?.sprites?.front_default ||
+            '';
+        },
+        error: err => {
+          console.error('Failed to load Pokémon details', err);
+        },
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

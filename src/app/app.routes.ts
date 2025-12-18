@@ -5,19 +5,13 @@ export const routes: Routes = [
     path: '',
     pathMatch: 'full',
     loadComponent: () => {
-      return import('./pokemon/pokemon-list').then((m) => m.PokemonList);
+      return import('./pokemon/pokemon-list').then((m) => m.PokemonListComponent);
     },
   },
   {
     path: 'details/:name',
     loadComponent: () =>
-      import('./pdp/pdp').then(c => c.Details),
+      import('./pdp/pdp').then(c => c.DetailsComponent),
     data: { prerender: false } 
-  },
-  {
-    path: 'pokemon',
-    loadComponent: () => {
-      return import('./pokemon/pokemon-list').then((m) => m.PokemonList);
-    },
   },
 ];
