@@ -1,0 +1,92 @@
+<div class="form-card">
+  <h1 class="form-title">Dynamic Age Form</h1>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <!-- Age -->
+    <div class="form-group">
+      <label>
+        Age <span class="required">*</span>
+      </label>
+      <input
+        type="number"
+        formControlName="age"
+        placeholder="Enter your age"
+      />
+      <div
+        class="error-message"
+        *ngIf="form.get('age')?.touched && form.get('age')?.invalid"
+      >
+        <span *ngIf="form.get('age')?.errors?.['required']">
+          Age is required
+        </span>
+        <span *ngIf="form.get('age')?.errors?.['min']">
+          Age cannot be negative
+        </span>
+      </div>
+    </div>
+
+    <!-- Adult-only section -->
+    <div class="adult-section" *ngIf="isAdult">
+      <div class="form-group">
+        <label>
+          Driving License Number <span class="required">*</span>
+        </label>
+        <input
+          type="text"
+          formControlName="drivingLicense"
+          placeholder="Enter driving license number"
+        />
+        <div
+          class="error-message"
+          *ngIf="
+            form.get('drivingLicense')?.touched &&
+            form.get('drivingLicense')?.invalid
+          "
+        >
+          Driving license is required for adults
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>
+          Voter ID <span class="required">*</span>
+        </label>
+        <input
+          type="text"
+          formControlName="voterId"
+          placeholder="Enter voter ID"
+        />
+        <div
+          class="error-message"
+          *ngIf="
+            form.get('voterId')?.touched && form.get('voterId')?.invalid
+          "
+        >
+          Voter ID is required for adults
+        </div>
+      </div>
+    </div>
+
+    <!-- Credit card -->
+    <div class="form-group">
+      <label>
+        Credit Card Number (enabled only if adult)
+      </label>
+      <input
+        type="text"
+        formControlName="creditCard"
+        placeholder="Enter credit card number"
+      />
+      <div class="helper-text">
+        This field is disabled until age is 18 or above.
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button type="submit" [disabled]="form.invalid">
+        Submit
+      </button>
+    </div>
+  </form>
+</div>
